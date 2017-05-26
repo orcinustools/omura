@@ -1,4 +1,5 @@
 build:
+		go get github.com/julienschmidt/httprouter
 		go build
 
 clean:
