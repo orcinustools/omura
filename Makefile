@@ -2,6 +2,7 @@ build:
 		go build
 
 clean:
+		rm omura
 
 install: build
 
