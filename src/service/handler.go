@@ -14,33 +14,23 @@ import (
 // Category struct manifest data
 type Category struct {
 	Name string
-	OrcinusConf
 }
 
-// OrcinusConf struct manifest data
-type OrcinusConf struct {
-	Stack    string `json:"stack"`
-	Services struct {
-		Wordpress struct {
-			Image       string   `json:"image"`
-			Auth        bool     `json:"auth"`
-			Ports       []string `json:"ports"`
-			Environment []string `json:"environment"`
-		} `json:"wordpress"`
-	} `json:"services"`
-}
-
-func (c *OrcinusConf) getConf(category, product string) *OrcinusConf {
-	yamlFile, err := ioutil.ReadFile("./repository/" + category + "/" + product + "/orcinus.yml")
-	if err != nil {
-		log.Printf("yamlFile.Get err   #%v ", err)
+// Convert function to create dynamically json structure
+func convert(i interface{}) interface{} {
+	switch x := i.(type) {
+	case map[interface{}]interface{}:
+		m2 := map[string]interface{}{}
+		for k, v := range x {
+			m2[k.(string)] = convert(v)
+		}
+		return m2
+	case []interface{}:
+		for i, v := range x {
+			x[i] = convert(v)
+		}
 	}
-
-	err = yaml.Unmarshal(yamlFile, c)
-	if err != nil {
-		log.Fatalf("Unmarshal: %v", err)
-	}
-	return c
+	return i
 }
 
 // GETIndex is root endpoint for get System info
@@ -69,10 +59,18 @@ func GETCategory(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 // GETProduct endpoint for get product by name
 func GETProduct(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
-	var orcinusYaml OrcinusConf
-	orcinusYaml.getConf(ps.ByName("category"), ps.ByName("product"))
+	yamlFile, err := ioutil.ReadFile("./repository/" + ps.ByName("category") + "/" + ps.ByName("product") + "/orcinus.yml")
+	if err != nil {
+		log.Printf("yamlFile.Get err   #%v ", err)
+	}
 
-	result, err := json.Marshal(orcinusYaml)
+	var body interface{}
+	if err := yaml.Unmarshal([]byte(yamlFile), &body); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	result, err := json.Marshal(convert(body))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
