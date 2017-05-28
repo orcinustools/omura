@@ -1,4 +1,4 @@
-FROM golang
+FROM golang:1.7-alpine
 MAINTAINER imamdigmi <imam.digmi@gmail.com>
 RUN go get github.com/julienschmidt/httprouter; \
     go get gopkg.in/yaml.v2;
