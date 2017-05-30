@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/julienschmidt/httprouter"
 	yaml "gopkg.in/yaml.v2"
@@ -59,7 +60,7 @@ func GETCategory(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 // GETProduct endpoint for get product by name
 func GETProduct(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
-	yamlFile, err := ioutil.ReadFile("./repository/" + ps.ByName("category") + "/" + ps.ByName("product") + "/orcinus.yml")
+	yamlFile, err := ioutil.ReadFile(os.Getenv("GOPATH") + "/bin/repository/" + ps.ByName("category") + "/" + ps.ByName("product") + "/orcinus.yml")
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
 	}

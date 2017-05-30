@@ -5,6 +5,6 @@ RUN go get github.com/julienschmidt/httprouter; \
     go get gopkg.in/yaml.v2;
 ADD . /go/src/github.com/orcinustools/omura
 RUN go install github.com/orcinustools/omura
-RUN cd /go/bin; git clone https://github.com/orcinustools/repository.git
+RUN git clone https://github.com/orcinustools/repository.git $GOPATH/bin/repository
 ENTRYPOINT /go/bin/omura
 EXPOSE 8080
