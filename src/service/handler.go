@@ -26,21 +26,39 @@ func GETCategory(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 func GETProduct(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	var data map[string]Product
-	yamlFile, err := ioutil.ReadFile(os.Getenv("GOPATH") + "/bin/repository/" + ps.ByName("category") + "/" + ps.ByName("product") + "/orcinus.yml")
+	path := os.Getenv("GOPATH") + "/bin/repository/" + ps.ByName("category") + "/" + ps.ByName("product") + "/"
+
+	var yamlData map[string]Product
+	yamlFile, err := ioutil.ReadFile(path + "orcinus.yml")
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
 	}
-
-	if err := yaml.Unmarshal([]byte(yamlFile), &data); err != nil {
+	if err := yaml.Unmarshal([]byte(yamlFile), &yamlData); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	result, err := json.Marshal(data)
+	delete(yamlData, "stack")
+
+	result, err := json.Marshal(yamlData["services"])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	var manifestData ProductManifest
+	manifestFile, err := ioutil.ReadFile(path + "manifest.json")
+	if err != nil {
+		log.Printf("manifestFile.Get err   #%v ", err)
+	}
+	if err := json.Unmarshal([]byte(manifestFile), &manifestData); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	for _, v := range manifestData.Dependencies {
+		deps := os.Getenv("GOPATH") + "/bin/repository/" + v + "/orcinus.yml"
+		fmt.Printf("%v\n", deps)
 	}
 
 	w.Write(result)
