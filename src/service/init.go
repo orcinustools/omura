@@ -7,8 +7,8 @@ func Initialize() (err error) {
 	return
 }
 
-// Services response struct
-type Services struct {
+// Product response struct
+type Product struct {
 	Service map[string]Stack
 }
 
@@ -42,7 +42,7 @@ type ResponseFormat struct {
 }
 
 // UnmarshalYAML for handling dynamic Orcinus.yml
-func (e *Services) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (e *Product) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var services map[string]Stack
 	if err := unmarshal(&services); err != nil {
 		if _, ok := err.(*yaml.TypeError); !ok {
