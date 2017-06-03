@@ -45,6 +45,11 @@ func GETProduct(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	var resultData = []byte(result)
+	var resData Product
+	if err := json.Unmarshal(resultData, &resData); err != nil {
+		fmt.Println(err.Error())
+	}
 
 	var manifestData ProductManifest
 	manifestFile, err := ioutil.ReadFile(path + "manifest.json")
@@ -56,11 +61,57 @@ func GETProduct(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		return
 	}
 
-	for _, v := range manifestData.Dependencies {
-		deps := os.Getenv("GOPATH") + "/bin/repository/" + v + "/orcinus.yml"
-		fmt.Printf("%v\n", deps)
+	var mnf = []byte(manifestFile)
+	var manif ProductManifest
+	if err := json.Unmarshal(mnf, &manif); err != nil {
+		fmt.Println(err.Error())
 	}
 
-	w.Write(result)
+	items := []Srv{}
+	response := ResponseFormat{items}
+	for _, v := range manifestData.Dependencies {
+		deps := os.Getenv("GOPATH") + "/bin/repository/" + v + "/orcinus.yml"
+		var yamlData map[string]Product
+		yamlFile, err := ioutil.ReadFile(deps)
+		if err != nil {
+			log.Printf("yamlFile.Get err   #%v ", err)
+		}
+		if err := yaml.Unmarshal([]byte(yamlFile), &yamlData); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		delete(yamlData, "stack")
+
+		result, err := json.Marshal(yamlData["services"])
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		var resultData = []byte(result)
+		var resData Product
+		if err := json.Unmarshal(resultData, &resData); err != nil {
+			fmt.Println(err.Error())
+		}
+		for _, v := range resData.Service {
+			item := Srv{
+				Name:        manif.Name,
+				Logo:        manif.Logo,
+				Description: manif.Description,
+				Image:       v.Image,
+				Auth:        v.Auth,
+				Ports:       v.Ports,
+				Environment: v.Environment,
+			}
+			response.AddItem(item)
+		}
+	}
+
+	resps, err := json.Marshal(response.Stack)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(resps)
 	return
 }
