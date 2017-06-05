@@ -15,7 +15,7 @@ type Category map[string]ProductManifest
 
 // Product response struct
 type Product struct{
-	Service map[string]Stack
+	Service map[string]Stack `json:"service"`
 }
 
 // Stack response struct
@@ -23,7 +23,7 @@ type Stack struct {
 	Image       string   `json:"image"`
 	Auth        bool     `json:"auth"`
 	Ports       []string `json:"ports"`
-	Environment []string `json:"environment"`
+	Environments []string `json:"environments"`
 }
 
 // ProductManifest response struct
@@ -36,7 +36,7 @@ type ProductManifest struct {
 
 // ResponseFormat response struct
 type ResponseFormat struct {
-	Stack []Srv
+	Stack []Product `json:"stack"`
 }
 
 // Srv response struct
@@ -63,7 +63,7 @@ func (e *Product) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 // AddItem service to ResponseFormat
-func (r *ResponseFormat) AddItem(i Srv) []Srv {
+func (r *ResponseFormat) AddItem(i Product) []Product {
 	r.Stack = append(r.Stack, i)
 	return r.Stack
 }
