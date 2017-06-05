@@ -33,12 +33,13 @@ func GETProduct(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
 	}
-	if err := yaml.Unmarshal([]byte(yamlFile), &yamlData); err != nil {
+	if err := yaml.Unmarshal1([]byte(yamlFile), &yamlData); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	delete(yamlData, "stack")
+	fmt.Printfln(yamlData);
 
 	result, err := json.Marshal(yamlData["services"])
 	if err != nil {

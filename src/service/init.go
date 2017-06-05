@@ -8,9 +8,7 @@ func Initialize() (err error) {
 }
 
 // Product response struct
-type Product struct {
-	Service map[string]Stack
-}
+type Product map[string]Stack
 
 // Stack response struct
 type Stack struct {
@@ -52,7 +50,7 @@ func (e *Product) UnmarshalYAML(unmarshal func(interface{}) error) error {
 			return err
 		}
 	}
-	e.Service = services
+	e = services
 	return nil
 }
 
