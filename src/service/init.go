@@ -7,8 +7,16 @@ func Initialize() (err error) {
 	return
 }
 
+type Categories struct{
+	Categories []string `json:"categories"`
+}
+
+type Category map[string]ProductManifest
+
 // Product response struct
-type Product map[string]Stack
+type Product struct{
+	Service map[string]Stack
+}
 
 // Stack response struct
 type Stack struct {
@@ -50,7 +58,7 @@ func (e *Product) UnmarshalYAML(unmarshal func(interface{}) error) error {
 			return err
 		}
 	}
-	e = services
+	e.Service = services
 	return nil
 }
 

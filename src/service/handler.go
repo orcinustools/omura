@@ -10,15 +10,44 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	yaml "gopkg.in/yaml.v2"
+	"github.com/Jeffail/gabs"
 )
 
 // GETIndex is root endpoint for get System info
 func GETIndex(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, "Welcome!\n")
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	path := os.Getenv("GOPATH") + "/bin/repository/"
+	products := gabs.New()
+
+	ctgDir, _ := ioutil.ReadDir(path)
+    for _, ctg := range ctgDir {
+    	if ctg.IsDir() == true && ctg.Name() != ".git"{
+    		//CtgName = append(CtgName,f.Name())
+    		pdcPath := path + ctg.Name() + "/"
+    		pdcDir, _ := ioutil.ReadDir(pdcPath)
+    		for _, pdc := range pdcDir {
+    			manifestPath := pdcPath + pdc.Name() + "/manifest.json"
+    			manifestFile, err := ioutil.ReadFile(manifestPath)
+				if err != nil {
+					log.Printf("manifestFile.Get err   #%v ", err)
+				}
+				manifestData, err := gabs.ParseJSON([]byte(manifestFile))
+    			products.SetP(manifestData.Path("name").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".name")
+    			products.SetP(manifestData.Path("logo").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".logo")
+    			products.SetP(manifestData.Path("description").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".description")
+    		}
+    	}
+    }
+
+	fmt.Println(products.String())
+	w.Write([]byte(products.String()))
+	return
 }
 
 // GETCategory endpoint for get categories by Name
 func GETCategory(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+
 	fmt.Fprint(w, "Your "+ps.ByName("category")+" has arrived!\n")
 }
 
@@ -33,13 +62,13 @@ func GETProduct(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
 	}
-	if err := yaml.Unmarshal1([]byte(yamlFile), &yamlData); err != nil {
+	if err := yaml.Unmarshal([]byte(yamlFile), &yamlData); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	delete(yamlData, "stack")
-	fmt.Printfln(yamlData);
+	fmt.Println(yamlData);
 
 	result, err := json.Marshal(yamlData["services"])
 	if err != nil {
