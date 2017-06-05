@@ -34,6 +34,7 @@ func GETIndex(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 				}
 				manifestData, err := gabs.ParseJSON([]byte(manifestFile))
     			products.SetP(manifestData.Path("name").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".name")
+    			products.SetP(manifestData.Path("title").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".title")
     			products.SetP("statics/"+ ctg.Name() + "/" + pdc.Name() + "/" +manifestData.Path("logo").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".logo")
     			products.SetP(manifestData.Path("description").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".description")
     		}
