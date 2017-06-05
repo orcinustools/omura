@@ -7,6 +7,7 @@ endif
 build:
 		go get github.com/julienschmidt/httprouter
 		go get gopkg.in/yaml.v2
+		go get github.com/Jeffail/gabs
 		go build
 
 docker:
