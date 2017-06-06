@@ -59,6 +59,7 @@ func GETProduct(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	path := os.Getenv("GOPATH") + "/bin/repository/" + ps.ByName("category") + "/" + ps.ByName("product") + "/"
 
 	var yamlData map[string]Product
+
 	yamlFile, err := ioutil.ReadFile(path + "orcinus.yml")
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
@@ -72,7 +73,8 @@ func GETProduct(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	items := []Product{}
 	response := ResponseFormat{items}
-	response.AddItem(yamlData["services"])
+
+	// parser manifest.json
 
 	manifestPath := path + "manifest.json"
 	manifestFile, err := ioutil.ReadFile(manifestPath)
@@ -81,9 +83,29 @@ func GETProduct(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}
 	manifestData, err := gabs.ParseJSON([]byte(manifestFile))
 
+	logo, _ := manifestData.Path("logo").Data().(string)
+	title, _ := manifestData.Path("title").Data().(string)
+
+	//add manifest
+
+	mnfsPrp := Manifest{
+					Logo: "statics/"+ps.ByName("category") + "/" + ps.ByName("product") + "/" + logo,
+					Title: title,		
+				}
+    mnfsData := Product{
+    	Manifest: mnfsPrp,
+    	Service: yamlData["services"].Service,
+    }
+
+    //mnfsJson, err := json.Marshal(mnfsData)
+    //fmt.Println(string(mnfsJson))
+
+    //add data to items
+	response.AddItem(mnfsData)
+
 	children, _ := manifestData.S("dependencies").Children()
 	for _, child := range children {
-		fmt.Println(child.Data().(string))
+		//fmt.Println(child.Data().(string))
 
 		var yamlData map[string]Product
 
@@ -97,7 +119,30 @@ func GETProduct(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		}
 
 		delete(yamlData, "stack")
-		response.AddItem(yamlData["services"])
+
+		ctg := os.Getenv("GOPATH") + "/bin/repository/" + child.Data().(string) + "/"
+		manifestPath := ctg + "manifest.json"
+		manifestFile, err := ioutil.ReadFile(manifestPath)
+		if err != nil {
+			log.Printf("manifestFile.Get err   #%v ", err)
+		}
+		manifestData, err := gabs.ParseJSON([]byte(manifestFile))
+
+		logo, _ := manifestData.Path("logo").Data().(string)
+		title, _ := manifestData.Path("title").Data().(string)
+
+		//add manifest
+
+		mnfsPrp := Manifest{
+						Logo: "statics/"+child.Data().(string)+"/"+logo,
+						Title: title,		
+					}
+	    mnfsData := Product{
+	    	Manifest: mnfsPrp,
+	    	Service: yamlData["services"].Service,
+	    }
+
+		response.AddItem(mnfsData)
 	}
 
 
@@ -106,7 +151,7 @@ func GETProduct(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Println(string(resps))
+	//fmt.Println(string(resps))
 	w.Write(resps)
 	return
 }

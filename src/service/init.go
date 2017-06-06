@@ -7,15 +7,10 @@ func Initialize() (err error) {
 	return
 }
 
-type Categories struct{
-	Categories []string `json:"categories"`
-}
-
-type Category map[string]ProductManifest
-
 // Product response struct
 type Product struct{
 	Service map[string]Stack `json:"service"`
+	Manifest Manifest `json:"manifest"`
 }
 
 // Stack response struct
@@ -26,28 +21,14 @@ type Stack struct {
 	Environments []string `json:"environments"`
 }
 
-// ProductManifest response struct
-type ProductManifest struct {
-	Name         string   `json:"name"`
-	Logo         string   `json:"logo"`
-	Description  string   `json:"description"`
-	Dependencies []string `json:"dependencies"`
+type Manifest struct {
+	Logo 		 string	  `json:"logo"`
+	Title		 string	  `json:"title"`
 }
 
 // ResponseFormat response struct
 type ResponseFormat struct {
 	Stack []Product `json:"stack"`
-}
-
-// Srv response struct
-type Srv struct {
-	Name        string
-	Logo        string
-	Description string
-	Image       string
-	Auth        bool
-	Ports       []string
-	Environment []string
 }
 
 // UnmarshalYAML for handling dynamic Orcinus.yml
