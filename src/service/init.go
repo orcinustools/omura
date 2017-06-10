@@ -18,7 +18,7 @@ type Stack struct {
 	Image       string   `json:"image"`
 	Auth        bool     `json:"auth"`
 	Ports       []string `json:"ports"`
-	Environments []string `json:"environments"`
+	Environment []string `json:"environment"`
 }
 
 type Manifest struct {
