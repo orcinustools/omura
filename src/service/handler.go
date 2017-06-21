@@ -37,6 +37,7 @@ func GETIndex(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
     			products.SetP(manifestData.Path("title").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".title")
     			products.SetP("statics/"+ ctg.Name() + "/" + pdc.Name() + "/" +manifestData.Path("logo").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".logo")
     			products.SetP(manifestData.Path("description").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".description")
+			products.SetP(manifestData.Path("status").Data().(bool), "categories."+ctg.Name()+"."+pdc.Name()+".status")
     		}
     	}
     }
