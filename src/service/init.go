@@ -19,7 +19,8 @@ type Stack struct {
 	Auth        bool     `json:"auth"`
 	Ports       []string `json:"ports"`
 	Environment []string `json:"environment"`
-	Endpoint string 			`json:"endpoint"`
+	Endpoint string       `json:"endpoint"`
+	Status	    bool      `json:"status"`
 }
 
 type Manifest struct {
