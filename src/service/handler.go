@@ -104,7 +104,7 @@ func GETProduct(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
     //add data to items
 	response.AddItem(mnfsData)
 
-	children, _ := manifestData.S("dependencies").Children()
+	children := manifestData.S("dependencies").Children()
 	for _, child := range children {
 		//fmt.Println(child.Data().(string))
 
