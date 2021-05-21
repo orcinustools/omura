@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 	"net/http"
+	"omura/src/service"
 	"os"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/orcinustools/omura/src/service"
 )
 
 func main() {

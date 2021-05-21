@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/Jeffail/gabs"
 	"github.com/julienschmidt/httprouter"
 	yaml "gopkg.in/yaml.v2"
-	"github.com/Jeffail/gabs"
 )
 
 // GETIndex is root endpoint for get System info
@@ -21,26 +21,26 @@ func GETIndex(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	products := gabs.New()
 
 	ctgDir, _ := ioutil.ReadDir(path)
-    for _, ctg := range ctgDir {
-    	if ctg.IsDir() == true && ctg.Name() != ".git"{
-    		//CtgName = append(CtgName,f.Name())
-    		pdcPath := path + ctg.Name() + "/"
-    		pdcDir, _ := ioutil.ReadDir(pdcPath)
-    		for _, pdc := range pdcDir {
-    			manifestPath := pdcPath + pdc.Name() + "/manifest.json"
-    			manifestFile, err := ioutil.ReadFile(manifestPath)
+	for _, ctg := range ctgDir {
+		if ctg.IsDir() == true && ctg.Name() != ".git" {
+			//CtgName = append(CtgName,f.Name())
+			pdcPath := path + ctg.Name() + "/"
+			pdcDir, _ := ioutil.ReadDir(pdcPath)
+			for _, pdc := range pdcDir {
+				manifestPath := pdcPath + pdc.Name() + "/manifest.json"
+				manifestFile, err := ioutil.ReadFile(manifestPath)
 				if err != nil {
 					log.Printf("manifestFile.Get err   #%v ", err)
 				}
 				manifestData, err := gabs.ParseJSON([]byte(manifestFile))
-    			products.SetP(manifestData.Path("name").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".name")
-    			products.SetP(manifestData.Path("title").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".title")
-    			products.SetP("statics/"+ ctg.Name() + "/" + pdc.Name() + "/" +manifestData.Path("logo").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".logo")
-    			products.SetP(manifestData.Path("description").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".description")
-			products.SetP(manifestData.Path("status").Data().(bool), "categories."+ctg.Name()+"."+pdc.Name()+".status")
-    		}
-    	}
-    }
+				products.SetP(manifestData.Path("name").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".name")
+				products.SetP(manifestData.Path("title").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".title")
+				products.SetP("statics/"+ctg.Name()+"/"+pdc.Name()+"/"+manifestData.Path("logo").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".logo")
+				products.SetP(manifestData.Path("description").Data().(string), "categories."+ctg.Name()+"."+pdc.Name()+".description")
+				products.SetP(manifestData.Path("status").Data().(bool), "categories."+ctg.Name()+"."+pdc.Name()+".status")
+			}
+		}
+	}
 
 	fmt.Println(products.String())
 	w.Write([]byte(products.String()))
@@ -90,21 +90,21 @@ func GETProduct(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	//add manifest
 
 	mnfsPrp := Manifest{
-					Logo: "statics/"+ps.ByName("category") + "/" + ps.ByName("product") + "/" + logo,
-					Title: title,		
-				}
-    mnfsData := Product{
-    	Manifest: mnfsPrp,
-    	Service: yamlData["services"].Service,
-    }
+		Logo:  "statics/" + ps.ByName("category") + "/" + ps.ByName("product") + "/" + logo,
+		Title: title,
+	}
+	mnfsData := Product{
+		Manifest: mnfsPrp,
+		Service:  yamlData["services"].Service,
+	}
 
-    //mnfsJson, err := json.Marshal(mnfsData)
-    //fmt.Println(string(mnfsJson))
+	//mnfsJson, err := json.Marshal(mnfsData)
+	//fmt.Println(string(mnfsJson))
 
-    //add data to items
+	//add data to items
 	response.AddItem(mnfsData)
 
-	children := manifestData.S("dependencies").Children()
+	children, _ := manifestData.S("dependencies").Children()
 	for _, child := range children {
 		//fmt.Println(child.Data().(string))
 
@@ -135,17 +135,16 @@ func GETProduct(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		//add manifest
 
 		mnfsPrp := Manifest{
-						Logo: "statics/"+child.Data().(string)+"/"+logo,
-						Title: title,		
-					}
-	    mnfsData := Product{
-	    	Manifest: mnfsPrp,
-	    	Service: yamlData["services"].Service,
-	    }
+			Logo:  "statics/" + child.Data().(string) + "/" + logo,
+			Title: title,
+		}
+		mnfsData := Product{
+			Manifest: mnfsPrp,
+			Service:  yamlData["services"].Service,
+		}
 
 		response.AddItem(mnfsData)
 	}
-
 
 	resps, err := json.Marshal(response)
 	if err != nil {
